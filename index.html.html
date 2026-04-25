@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador de Ventas — Panadería</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FDF6EC;
+    --warm: #F5E6CC;
+    --crust: #C8884A;
+    --dark: #2C1A0E;
+    --mid: #6B3F1A;
+    --accent: #E05C2A;
+    --green: #2A7A4F;
+    --green-light: #E8F5EE;
+    --red: #C0392B;
+    --red-light: #FDECEA;
+    --card: #FFFAF3;
+    --border: #E8D5B5;
+    --shadow: 0 2px 16px rgba(44,26,14,0.09);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--dark);
+    min-height: 100vh;
+  }
+
+  header {
+    background: var(--dark);
+    padding: 28px 32px 22px;
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+  }
+
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.9rem;
+    color: var(--warm);
+    line-height: 1.1;
+  }
+
+  header h1 span {
+    color: var(--crust);
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .emoji-icon { font-size: 2.4rem; line-height: 1; }
+
+  .main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 28px 20px 60px;
+  }
+
+  /* META CARD */
+  .meta-card {
+    background: var(--dark);
+    border-radius: 16px;
+    padding: 24px 28px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .meta-label {
+    color: #B89070;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .meta-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .meta-goal { color: var(--crust); }
+
+  .meta-current {
+    transition: color 0.4s;
+    font-size: 2.4rem;
+  }
+
+  .meta-diff {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-top: 4px;
+    transition: color 0.3s;
+  }
+
+  .progress-wrap {
+    flex: 1;
+    min-width: 180px;
+  }
+
+  .progress-bar-bg {
+    background: rgba(255,255,255,0.08);
+    border-radius: 999px;
+    height: 10px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.4s ease, background 0.4s;
+    background: var(--crust);
+  }
+
+  .progress-pct {
+    color: #B89070;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  /* PRODUCTS GRID */
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    color: var(--mid);
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    box-shadow: var(--shadow);
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+
+  .card:hover {
+    box-shadow: 0 6px 24px rgba(44,26,14,0.13);
+    transform: translateY(-2px);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .card-icon { font-size: 1.5rem; }
+
+  .card-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--dark);
+    line-height: 1.2;
+  }
+
+  .card-prices {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+
+  .pill {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    letter-spacing: 0.03em;
+  }
+
+  .pill-cost { background: #F0E4D0; color: var(--mid); }
+  .pill-price { background: #D6EDDF; color: var(--green); }
+  .pill-margin { background: #FDE8DA; color: var(--accent); }
+
+  .qty-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .qty-label {
+    font-size: 0.78rem;
+    color: #8B6343;
+    font-weight: 500;
+    flex: 1;
+  }
+
+  .qty-ctrl {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: white;
+  }
+
+  .qty-btn {
+    width: 30px; height: 30px;
+    border: none;
+    background: var(--warm);
+    color: var(--mid);
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .qty-btn:hover { background: var(--crust); color: white; }
+
+  .qty-input {
+    width: 60px; height: 30px;
+    border: none;
+    border-left: 1.5px solid var(--border);
+    border-right: 1.5px solid var(--border);
+    text-align: center;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--dark);
+    background: white;
+    outline: none;
+  }
+
+  .qty-input:focus { background: #FFFBF5; }
+
+  .card-contrib {
+    background: var(--green-light);
+    border-radius: 8px;
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.82rem;
+  }
+
+  .card-contrib .label { color: var(--green); font-weight: 500; }
+  .card-contrib .value { font-weight: 700; color: var(--green); font-size: 0.95rem; }
+
+  /* SUMMARY TABLE */
+  .summary-box {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: var(--shadow);
+    margin-bottom: 24px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+
+  thead th {
+    background: var(--warm);
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--mid);
+  }
+
+  thead th:first-child { border-radius: 8px 0 0 8px; }
+  thead th:last-child { border-radius: 0 8px 8px 0; text-align: right; }
+
+  tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+  tbody td:last-child { text-align: right; font-weight: 600; }
+  tbody tr:hover td { background: #FFF8EE; }
+
+  tfoot td {
+    padding: 12px 14px;
+    font-weight: 700;
+    background: var(--dark);
+    color: white;
+    font-size: 0.95rem;
+  }
+
+  tfoot td:first-child { border-radius: 8px 0 0 8px; }
+  tfoot td:last-child { border-radius: 0 8px 8px 0; text-align: right; font-size: 1.1rem; color: var(--crust); }
+
+  /* PRESET BUTTONS */
+  .presets {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+
+  .preset-btn {
+    background: white;
+    border: 1.5px solid var(--crust);
+    color: var(--mid);
+    padding: 8px 16px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+
+  .preset-btn:hover { background: var(--crust); color: white; border-color: var(--crust); }
+
+  .preset-btn.active { background: var(--crust); color: white; }
+
+  /* ALERT */
+  .alert {
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .alert-success { background: var(--green-light); color: var(--green); border: 1.5px solid #A8DDB9; }
+  .alert-warn { background: #FFF8E1; color: #7A5C00; border: 1.5px solid #FFE082; }
+  .alert-danger { background: var(--red-light); color: var(--red); border: 1.5px solid #F5B8B0; }
+
+  @media (max-width: 500px) {
+    header h1 { font-size: 1.4rem; }
+    .meta-value { font-size: 1.8rem; }
+    .meta-current { font-size: 1.8rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="emoji-icon">🍞</div>
+  <h1>
+    Simulador de Ventas
+    <span>¿Cuánto debo vender para ganar $30,000?</span>
+  </h1>
+</header>
+
+<div class="main">
+
+  <!-- META CARD -->
+  <div class="meta-card">
+    <div>
+      <div class="meta-label">Meta mensual</div>
+      <div class="meta-value meta-goal">$30,000</div>
+    </div>
+    <div>
+      <div class="meta-label">Ganancia proyectada</div>
+      <div class="meta-value meta-current" id="total-ganancia">$0</div>
+      <div class="meta-diff" id="diff-label">— Falta $30,000</div>
+    </div>
+    <div class="progress-wrap">
+      <div class="meta-label">Avance hacia la meta</div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+      <div class="progress-pct" id="progress-pct">0%</div>
+    </div>
+  </div>
+
+  <!-- PRESETS -->
+  <p class="section-title">Escenarios rápidos</p>
+  <div class="presets">
+    <button class="preset-btn" onclick="applyPreset('conservador')">🟡 Conservador</button>
+    <button class="preset-btn" onclick="applyPreset('moderado')">🟠 Moderado</button>
+    <button class="preset-btn" onclick="applyPreset('agresivo')">🟢 Agresivo</button>
+    <button class="preset-btn" onclick="applyPreset('reset')">↩ Limpiar</button>
+  </div>
+
+  <!-- PRODUCTS -->
+  <p class="section-title">Ajusta las cantidades por producto</p>
+  <div class="grid" id="products-grid"></div>
+
+  <!-- ALERT -->
+  <div id="status-alert" class="alert alert-warn">
+    ⚡ Ajusta las cantidades para ver si alcanzas tu meta de $30,000.
+  </div>
+
+  <!-- TABLE -->
+  <div class="summary-box">
+    <p class="section-title" style="margin-bottom:16px">Resumen de ventas</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Cant.</th>
+          <th>Ingresos</th>
+          <th>Costos</th>
+          <th>Ganancia</th>
+        </tr>
+      </thead>
+      <tbody id="summary-tbody"></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="2">TOTAL MENSUAL</td>
+          <td id="tfoot-ingresos">$0</td>
+          <td id="tfoot-costos">$0</td>
+          <td id="tfoot-ganancia">$0</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+</div>
+
+<script>
+const META = 30000;
+
+const products = [
+  { id: 'multigrano', name: 'Pan Multigrano', icon: '🌾', costo: 57,    precio: 165, qty: 0 },
+  { id: 'marmoleado', name: 'Pan Marmoleado', icon: '🍫', costo: 55,    precio: 155, qty: 0 },
+  { id: 'blanco',     name: 'Pan Blanco',     icon: '🍞', costo: 41.5,  precio: 135, qty: 0 },
+  { id: 'integral',   name: 'Pan Integral',   icon: '🌿', costo: 41.5,  precio: 140, qty: 0 },
+  { id: 'centeno',    name: 'Pan de Centeno', icon: '🌰', costo: 46,    precio: 155, qty: 0 },
+  { id: 'brownie',    name: 'Brownie',         icon: '🍫', costo: 5,     precio: 20,  qty: 0 },
+  { id: 'roles',      name: 'Rol de Canela',  icon: '🌀', costo: 14,    precio: 40,  qty: 0 },
+  { id: 'cuernitos',  name: 'Cuernito',       icon: '🥐', costo: 5.8,   precio: 28,  qty: 0 },
+];
+
+const presets = {
+  conservador: [30, 20, 40, 30, 20, 100, 60, 150],
+  moderado:    [50, 40, 60, 50, 35, 200, 100, 300],
+  agresivo:    [80, 70, 100, 80, 60, 400, 180, 500],
+  reset:       [0,  0,  0,  0,  0,  0,   0,   0  ],
+};
+
+function fmt(n) {
+  return '$' + n.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function buildGrid() {
+  const grid = document.getElementById('products-grid');
+  grid.innerHTML = '';
+  products.forEach((p, i) => {
+    const ganUnit = p.precio - p.costo;
+    const margen = ((ganUnit / p.precio) * 100).toFixed(1);
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.innerHTML = `
+      <div class="card-header">
+        <span class="card-icon">${p.icon}</span>
+        <span class="card-name">${p.name}</span>
+      </div>
+      <div class="card-prices">
+        <span class="pill pill-cost">Costo: ${fmt(p.costo)}</span>
+        <span class="pill pill-price">Precio: ${fmt(p.precio)}</span>
+        <span class="pill pill-margin">Margen: ${margen}%</span>
+      </div>
+      <div class="qty-row">
+        <span class="qty-label">Unidades / mes</span>
+        <div class="qty-ctrl">
+          <button class="qty-btn" onclick="changeQty(${i}, -1)">−</button>
+          <input class="qty-input" type="number" min="0" id="qty-${i}" value="${p.qty}" onchange="setQty(${i}, this.value)">
+          <button class="qty-btn" onclick="changeQty(${i}, 1)">+</button>
+        </div>
+      </div>
+      <div class="card-contrib">
+        <span class="label">Ganancia aportada:</span>
+        <span class="value" id="contrib-${i}">${fmt(ganUnit * p.qty)}</span>
+      </div>
+    `;
+    grid.appendChild(div);
+  });
+}
+
+function changeQty(i, delta) {
+  products[i].qty = Math.max(0, products[i].qty + delta);
+  document.getElementById(`qty-${i}`).value = products[i].qty;
+  update();
+}
+
+function setQty(i, val) {
+  products[i].qty = Math.max(0, parseInt(val) || 0);
+  update();
+}
+
+function applyPreset(name) {
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  if (name !== 'reset') event.target.classList.add('active');
+  presets[name].forEach((q, i) => {
+    products[i].qty = q;
+    document.getElementById(`qty-${i}`).value = q;
+  });
+  update();
+}
+
+function update() {
+  let totalGan = 0, totalIng = 0, totalCost = 0;
+  const tbody = document.getElementById('summary-tbody');
+  tbody.innerHTML = '';
+
+  products.forEach((p, i) => {
+    const ganUnit = p.precio - p.costo;
+    const ganTotal = ganUnit * p.qty;
+    const ingTotal = p.precio * p.qty;
+    const costTotal = p.costo * p.qty;
+    totalGan += ganTotal;
+    totalIng += ingTotal;
+    totalCost += costTotal;
+
+    document.getElementById(`contrib-${i}`).textContent = fmt(ganTotal);
+
+    if (p.qty > 0) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${p.icon} ${p.name}</td>
+        <td>${p.qty.toLocaleString()}</td>
+        <td>${fmt(ingTotal)}</td>
+        <td>${fmt(costTotal)}</td>
+        <td>${fmt(ganTotal)}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+  });
+
+  // Update header
+  document.getElementById('total-ganancia').textContent = fmt(totalGan);
+  document.getElementById('tfoot-ingresos').textContent = fmt(totalIng);
+  document.getElementById('tfoot-costos').textContent = fmt(totalCost);
+  document.getElementById('tfoot-ganancia').textContent = fmt(totalGan);
+
+  const pct = Math.min(100, (totalGan / META) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct.toFixed(1) + '%';
+
+  const diff = totalGan - META;
+  const diffEl = document.getElementById('diff-label');
+  const ganEl = document.getElementById('total-ganancia');
+  const fillEl = document.getElementById('progress-fill');
+  const alertEl = document.getElementById('status-alert');
+
+  if (diff >= 0) {
+    ganEl.style.color = '#4CAF50';
+    fillEl.style.background = '#2A7A4F';
+    diffEl.style.color = '#4CAF50';
+    diffEl.textContent = `✅ Excedes la meta en ${fmt(diff)}`;
+    alertEl.className = 'alert alert-success';
+    alertEl.innerHTML = `🎉 ¡Meta alcanzada! Estás generando <strong>${fmt(totalGan)}</strong> de ganancia mensual, <strong>${fmt(diff)}</strong> por encima de tu objetivo.`;
+  } else {
+    const falta = Math.abs(diff);
+    ganEl.style.color = pct > 60 ? '#E0811A' : '#C0392B';
+    fillEl.style.background = pct > 60 ? '#E0811A' : '#C0392B';
+    diffEl.style.color = '#8B6343';
+    diffEl.textContent = `— Falta ${fmt(falta)}`;
+    alertEl.className = pct > 60 ? 'alert alert-warn' : 'alert alert-danger';
+    alertEl.innerHTML = `📊 Te faltan <strong>${fmt(falta)}</strong> para alcanzar tu meta. Ajusta las cantidades o usa un escenario rápido.`;
+  }
+}
+
+buildGrid();
+update();
+</script>
+</body>
+</html>
